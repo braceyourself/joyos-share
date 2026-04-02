@@ -1,5 +1,5 @@
 node_modules/
 dist/
 .wrangler/
-client/src/module_bindings/
+# client/src/module_bindings/ — committed for CI (no spacetime CLI in GitHub Actions)
 __pycache__/
