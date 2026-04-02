@@ -1,0 +1,11 @@
+{
+  "name": "joyos-share-server",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "spacetimedb": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

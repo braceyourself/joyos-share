@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Stripe Setup Guide — JoyOS Lab</title>
+<link rel="icon" href="https://more-joy.braceyourself.solutions/logos/mark.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: #FFF8F0;
+    color: #2D2A26;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Wizard layout ── */
+  .wizard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  .wizard-header {
+    padding: 32px 0 24px;
+    text-align: center;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .logo-row img { width: 36px; height: 36px; border-radius: 50%; }
+  .logo-row span { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; color: #039FB2; }
+
+  .wizard-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2D2A26;
+    margin-bottom: 6px;
+  }
+
+  .wizard-header .subtitle {
+    font-size: 14px;
+    color: rgba(45, 42, 38, 0.5);
+  }
+
+  /* Progress bar */
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 0 24px;
+  }
+
+  .progress-seg {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(45, 42, 38, 0.08);
+    transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .progress-seg.done { background: #039FB2; }
+  .progress-seg.active { background: #CBA951; }
+
+  .progress-label {
+    font-size: 12px;
+    color: rgba(45, 42, 38, 0.4);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* Step content */
+  .step-area {
+    flex: 1;
+  }
+
+  .step {
+    display: none;
+    animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .step.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-card {
+    padding: 28px;
+    background: #FEFCF8;
+    border: 1px solid rgba(45, 42, 38, 0.08);
+    border-radius: 14px;
+  }
+
+  .step-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2D2A26;
+    margin-bottom: 14px;
+  }
+
+  .step-card p {
+    font-size: 15px;
+    margin-bottom: 14px;
+    color: rgba(45, 42, 38, 0.8);
+  }
+
+  .step-card p:last-child { margin-bottom: 0; }
+
+  .step-card a { color: #039FB2; text-decoration: none; font-weight: 500; }
+  .step-card a:hover { text-decoration: underline; }
+
+  .step-card code {
+    display: inline-block;
+    background: #F5E6D0;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: monospace;
+    color: #b8943e;
+  }
+
+  .step-card ol, .step-card ul { padding-left: 20px; margin: 12px 0; }
+  .step-card li { margin-bottom: 8px; font-size: 15px; color: rgba(45, 42, 38, 0.8); }
+
+  .note {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(203, 169, 81, 0.06);
+    border-left: 3px solid #CBA951;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: rgba(45, 42, 38, 0.6);
+  }
+
+  .warning {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(248, 113, 113, 0.06);
+    border-left: 3px solid rgba(248, 113, 113, 0.6);
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: rgba(45, 42, 38, 0.6);
+  }
+
+  .permissions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+
+  .permissions-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: rgba(45, 42, 38, 0.04);
+    color: rgba(45, 42, 38, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(45, 42, 38, 0.08);
+  }
+
+  .permissions-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(45, 42, 38, 0.05);
+  }
+
+  .perm-name { font-weight: 500; color: #2D2A26; }
+  .perm-level { font-family: monospace; font-size: 12px; color: #039FB2; }
+
+  /* Navigation footer */
+  .wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0 40px;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-next {
+    background: #039FB2;
+    color: #fff;
+  }
+
+  .btn-next:hover { background: #028a9b; box-shadow: 0 4px 16px rgba(3, 159, 178, 0.25); }
+
+  .btn-back {
+    background: transparent;
+    color: rgba(45, 42, 38, 0.5);
+    border: 1px solid rgba(45, 42, 38, 0.12);
+  }
+
+  .btn-back:hover { background: rgba(45, 42, 38, 0.04); color: #2D2A26; }
+
+  .btn-done {
+    background: #CBA951;
+    color: #fff;
+    width: 100%;
+  }
+
+  .btn-done:hover { background: #b8943e; box-shadow: 0 4px 16px rgba(203, 169, 81, 0.25); }
+
+  .btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+
+  .nav-spacer { flex: 1; }
+
+  /* Done screen */
+  .done-screen {
+    text-align: center;
+    padding: 48px 24px;
+  }
+
+  .done-screen .checkmark {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(3, 159, 178, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: #039FB2;
+  }
+
+  .done-screen h2 { font-size: 22px; font-weight: 700; color: #2D2A26; margin-bottom: 8px; }
+  .done-screen p { font-size: 15px; color: rgba(45, 42, 38, 0.55); margin-bottom: 8px; }
+
+  .help-link {
+    margin-top: 16px;
+    font-size: 13px;
+    color: rgba(45, 42, 38, 0.35);
+  }
+
+  @media (max-width: 640px) {
+    .wizard { padding: 0 16px; }
+    .wizard-header { padding: 24px 0 16px; }
+    .wizard-header h1 { font-size: 20px; }
+    .step-card { padding: 20px; }
+    .step-card h2 { font-size: 17px; }
+    .btn { padding: 11px 22px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wizard">
+  <div class="wizard-header">
+    <div class="logo-row">
+      <img src="https://more-joy.braceyourself.solutions/logos/mark.png" alt="JoyOS">
+      <span>JOYOS LAB</span>
+    </div>
+    <h1>Connect Your Stripe Account</h1>
+    <p class="subtitle">Link Stripe to the JoyOS Lab platform.</p>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div class="progress-label" id="progressLabel"></div>
+
+  <div class="step-area">
+
+    <!-- STEP 0: Intro -->
+    <div class="step active" data-step="0">
+      <div class="step-card">
+        <h2>Hey Kristin</h2>
+        <p>I know you've done Stripe before, so most of this will be familiar. The two things that are different from a normal setup:</p>
+        <ul>
+          <li><strong>A restricted API key</strong> — instead of your main secret key, we create one that only has the permissions the platform needs. Safer that way.</li>
+          <li><strong>A webhook</strong> — this is a URL that Stripe pings every time someone pays, cancels, or changes their subscription. Without it, the platform won't know when someone has paid.</li>
+        </ul>
+        <p>If you already have your Activator and Catalyst products in Stripe, skip the product creation steps. The whole thing should take about 5 minutes.</p>
+      </div>
+    </div>
+
+    <!-- STEP 1: Log in -->
+    <div class="step" data-step="1">
+      <div class="step-card">
+        <h2>Log in to Stripe</h2>
+        <p>Go to <a href="https://dashboard.stripe.com" target="_blank">dashboard.stripe.com</a> and sign in with your Stripe account.</p>
+        <p>If you don't have a Stripe account yet, you can create one there. You'll need a bank account connected for payouts.</p>
+      </div>
+    </div>
+
+    <!-- STEP 2: Create products -->
+    <div class="step" data-step="2">
+      <div class="step-card">
+        <h2>Create Your Products</h2>
+        <p>You need two subscription products in Stripe. If you already have them, skip this step.</p>
+        <ol>
+          <li>Go to <strong>Product catalog</strong> in the left sidebar</li>
+          <li>Click <strong>+ Add product</strong></li>
+          <li>First product:
+            <ul>
+              <li>Name: <code>Joy Activator</code></li>
+              <li>Pricing: <strong>Recurring</strong>, <code>$297.00</code> per <code>year</code></li>
+            </ul>
+          </li>
+          <li>Second product:
+            <ul>
+              <li>Name: <code>Joy Catalyst</code></li>
+              <li>Pricing: <strong>Recurring</strong>, <code>$597.00</code> per <code>year</code></li>
+            </ul>
+          </li>
+        </ol>
+        <div class="note">You don't need Joy Seeker yet. We're keeping that tier hidden until the platform is more built out.</div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Go to API keys -->
+    <div class="step" data-step="3">
+      <div class="step-card">
+        <h2>Go to API Keys</h2>
+        <ol>
+          <li>Click <strong>Developers</strong> in the top-right corner of the Stripe dashboard</li>
+          <li>Click <strong>API keys</strong> in the left sidebar</li>
+        </ol>
+        <p>You'll see your existing keys. We're going to create a new <strong>restricted</strong> key that only has the permissions the platform needs.</p>
+      </div>
+    </div>
+
+    <!-- STEP 4: Create restricted key -->
+    <div class="step" data-step="4">
+      <div class="step-card">
+        <h2>Create a Restricted Key</h2>
+        <p>Click <strong>+ Create restricted key</strong>, name it <code>JoyOS Lab Platform</code>, and set these permissions:</p>
+        <table class="permissions-table">
+          <thead><tr><th>Permission</th><th>Level</th></tr></thead>
+          <tbody>
+            <tr><td class="perm-name">Checkout Sessions</td><td class="perm-level">Write</td></tr>
+            <tr><td class="perm-name">Customers</td><td class="perm-level">Write</td></tr>
+            <tr><td class="perm-name">Customer portal</td><td class="perm-level">Write</td></tr>
+            <tr><td class="perm-name">Products</td><td class="perm-level">Read</td></tr>
+            <tr><td class="perm-name">Prices</td><td class="perm-level">Read</td></tr>
+            <tr><td class="perm-name">Subscriptions</td><td class="perm-level">Read</td></tr>
+          </tbody>
+        </table>
+        <p>Everything else stays <strong>None</strong>. Click <strong>Create key</strong>.</p>
+        <div class="warning">Stripe only shows the full key once. It starts with <code>rk_live_</code>. <strong>Copy it before closing the dialog.</strong></div>
+      </div>
+    </div>
+
+    <!-- STEP 5: Paste key -->
+    <div class="step" data-step="5">
+      <div class="step-card">
+        <h2>Paste the Key into the Admin Panel</h2>
+        <ol>
+          <li>Go to <a href="https://lab.joyos.global/app/admin?tab=stripe" target="_blank">lab.joyos.global/app/admin</a></li>
+          <li>Sign in with your Google account</li>
+          <li>In the <strong>Stripe</strong> tab, paste the key into the <strong>Restricted API Key</strong> field</li>
+          <li>Don't click Save yet, we'll do that after the webhook step</li>
+        </ol>
+        <div class="note">Your key is stored securely and only used server-side. It never appears in the browser or in any code that members can see.</div>
+      </div>
+    </div>
+
+    <!-- STEP 6: Webhook -->
+    <div class="step" data-step="6">
+      <div class="step-card">
+        <h2>Set Up the Webhook</h2>
+        <p>This tells Stripe to notify the platform when someone pays, cancels, or changes their subscription.</p>
+        <ol>
+          <li>In the Stripe dashboard, click <strong>Developers</strong> (top-right)</li>
+          <li>Click <strong>Webhooks</strong> in the left sidebar</li>
+          <li>Click <strong>+ Add endpoint</strong></li>
+          <li>For the endpoint URL, paste:<br><code>https://lab.joyos.global/api/stripe-webhook</code></li>
+          <li>Click <strong>Select events</strong>, then check these five:
+            <ul>
+              <li><code>checkout.session.completed</code></li>
+              <li><code>customer.subscription.updated</code></li>
+              <li><code>customer.subscription.deleted</code></li>
+              <li><code>invoice.paid</code></li>
+              <li><code>invoice.payment_failed</code></li>
+            </ul>
+          </li>
+          <li>Click <strong>Add endpoint</strong></li>
+        </ol>
+        <div class="note">You only need to do this once. After it's set up, every payment and subscription change will automatically update the member's access on the platform.</div>
+      </div>
+    </div>
+
+    <!-- STEP 7: Save webhook signing secret -->
+    <div class="step" data-step="7">
+      <div class="step-card">
+        <h2>Paste the Webhook Signing Secret</h2>
+        <p>After creating the webhook, Stripe will show you a <strong>Signing secret</strong> that starts with <code>whsec_</code>.</p>
+        <ol>
+          <li>Copy the signing secret</li>
+          <li>Go back to the <a href="https://lab.joyos.global/app/admin?tab=stripe" target="_blank">admin panel Stripe tab</a></li>
+          <li>Paste it into the <strong>Webhook Signing Secret</strong> field</li>
+          <li>Click <strong>Save</strong></li>
+        </ol>
+        <p>This lets the platform verify that webhook events are actually coming from Stripe.</p>
+        <div class="warning">Stripe only shows this secret once. Copy it before navigating away from the page.</div>
+      </div>
+    </div>
+
+    <!-- DONE -->
+    <div class="step" data-step="done">
+      <div class="done-screen">
+        <div class="checkmark">&#10003;</div>
+        <h2>That's it</h2>
+        <p>Everything is connected. When someone pays on the platform, Stripe processes the payment and the platform updates their access automatically.</p>
+        <p class="help-link">Questions? Text Ethan or we'll cover it on our next call.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="wizard-nav" id="wizardNav">
+    <button class="btn btn-back" id="backBtn" onclick="go(-1)">Back</button>
+    <div class="nav-spacer"></div>
+    <button class="btn btn-next" id="nextBtn" onclick="go(1)">Next</button>
+  </div>
+</div>
+
+<script>
+var TOTAL = 8;
+var current = 0;
+
+function go(dir) {
+  var next = current + dir;
+  if (next < 0 || next > TOTAL) return;
+  current = next;
+  render();
+}
+
+function render() {
+  // Steps
+  document.querySelectorAll('.step').forEach(function(el) {
+    var s = el.getAttribute('data-step');
+    el.classList.toggle('active', s === (current === TOTAL ? 'done' : String(current)));
+  });
+
+  // Progress bar
+  var bar = document.getElementById('progress');
+  var segs = '';
+  for (var i = 0; i < TOTAL; i++) {
+    var cls = i < current ? 'done' : i === current ? 'active' : '';
+    segs += '<div class="progress-seg ' + cls + '"></div>';
+  }
+  bar.innerHTML = segs;
+
+  // Label
+  var label = document.getElementById('progressLabel');
+  if (current < TOTAL) {
+    label.textContent = 'Step ' + (current + 1) + ' of ' + TOTAL;
+  } else {
+    label.textContent = '';
+  }
+
+  // Buttons
+  var backBtn = document.getElementById('backBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var nav = document.getElementById('wizardNav');
+
+  if (current === TOTAL) {
+    nav.style.display = 'none';
+  } else {
+    nav.style.display = 'flex';
+    backBtn.disabled = current === 0;
+    backBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+    nextBtn.textContent = current === TOTAL - 1 ? 'Finish' : 'Next';
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>

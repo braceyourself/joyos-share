@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.wrangler/
+client/src/module_bindings/
+__pycache__/
